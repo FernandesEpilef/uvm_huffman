@@ -100,7 +100,7 @@ package huffman_pkg;
     function void build_phase(uvm_phase phase);
       super.build_phase(phase);
       if(!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
-        `uvm_error("NOVIF", "Virtual interface não foi configurada para o driver")
+        `uvm_error("NOVIF", "Virtual interface not configured for driver")
     endfunction
     
     // Tarefa principal
@@ -157,7 +157,7 @@ package huffman_pkg;
     function void build_phase(uvm_phase phase);
       super.build_phase(phase);
       if(!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
-        `uvm_error("NOVIF", "Virtual interface não foi configurada para o monitor")
+        `uvm_error("NOVIF", "Virtual interface not configured for monitor")
     endfunction
     
     // Tarefa principal
@@ -177,7 +177,7 @@ package huffman_pkg;
           // Enviar item para análise
           item_collected_port.write(item);
           
-          `uvm_info("MONITOR", $sformatf("Símbolo detectado: %0d", vif.symbol_out), UVM_MEDIUM)
+          `uvm_info("MONITOR", $sformatf("Symbol detected: %0d", vif.symbol_out), UVM_MEDIUM)
         end
       end
     endtask
@@ -249,14 +249,14 @@ package huffman_pkg;
       // Verificar se o símbolo de saída corresponde ao esperado
       if (item.expected_valid) begin
         if (item.expected_symbol >= 1 && item.expected_symbol <= 18) begin
-          `uvm_info("SCOREBOARD", $sformatf("PASS: Símbolo válido %0d detectado", item.expected_symbol), UVM_LOW)
+          `uvm_info("SCOREBOARD", $sformatf("PASS: Valid symbol %0d detected", item.expected_symbol), UVM_LOW)
           num_passed++;
         end else begin
-          `uvm_error("SCOREBOARD", $sformatf("FAIL: Símbolo inválido %0d detectado", item.expected_symbol))
+          `uvm_error("SCOREBOARD", $sformatf("FAIL: Invalid symbol %0d detected", item.expected_symbol))
           num_failed++;
         end
       end else begin
-        `uvm_info("SCOREBOARD", "PASS: Nenhum símbolo válido detectado para entrada inválida", UVM_LOW)
+        `uvm_info("SCOREBOARD", "PASS: No valid symbol detected for invalid input", UVM_LOW)
         num_passed++;
       end
     endfunction
@@ -343,8 +343,8 @@ package huffman_pkg;
     virtual task apply_reset();
       // Obter interface virtual
       virtual huffman_if vif;
-      if (!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
-        `uvm_error("NOVIF", "Virtual interface não foi configurada para o teste")
+      if(!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
+        `uvm_error("NOVIF", "Virtual interface not configured for test")
       
       // Aplicar reset
       vif.rst <= 1;
