@@ -1,5 +1,5 @@
 `include "uvm_macros.svh"
-`include "huffman_if.sv"
+// Removido include da interface para evitar definição duplicada
 `include "huffman_pkg.sv"
 
 module huffman_top;
