@@ -18,14 +18,8 @@ package huffman_pkg;
     // Restrições
     constraint c_num_bits { num_bits inside {1, 2, 3, 4, 5, 6}; }
     
-    // Registrar objeto com factory UVM
-    `uvm_object_utils_begin(huffman_seq_item)
-      `uvm_field_int(bit_in, UVM_ALL_ON)
-      `uvm_field_int(expected_symbol, UVM_ALL_ON)
-      `uvm_field_int(expected_valid, UVM_ALL_ON)
-      `uvm_field_int(num_bits, UVM_ALL_ON)
-      `uvm_field_int(bit_stream, UVM_ALL_ON)
-    `uvm_object_utils_end
+    // Registrar objeto com factory UVM - versão simplificada
+    `uvm_object_utils(huffman_seq_item)
     
     // Construtor
     function new(string name = "huffman_seq_item");
@@ -53,7 +47,7 @@ package huffman_pkg;
       huffman_seq_item req;
       
       // Testar símbolo 1 (código: 0)
-      req = huffman_seq_item::type_id::create("req");
+      req = new("req");
       start_item(req);
       req.bit_stream = 8'b00000000;
       req.num_bits = 1;
@@ -62,7 +56,7 @@ package huffman_pkg;
       finish_item(req);
       
       // Testar símbolo 2 (código: 10)
-      req = huffman_seq_item::type_id::create("req");
+      req = new("req");
       start_item(req);
       req.bit_stream = 8'b00000010;
       req.num_bits = 2;
@@ -71,7 +65,7 @@ package huffman_pkg;
       finish_item(req);
       
       // Testar símbolo 3 (código: 100)
-      req = huffman_seq_item::type_id::create("req");
+      req = new("req");
       start_item(req);
       req.bit_stream = 8'b00000100;
       req.num_bits = 3;
@@ -106,7 +100,7 @@ package huffman_pkg;
     function void build_phase(uvm_phase phase);
       super.build_phase(phase);
       if(!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
-        `uvm_fatal("NOVIF", "Virtual interface não foi configurada para o driver")
+        `uvm_error("NOVIF", "Virtual interface não foi configurada para o driver")
     endfunction
     
     // Tarefa principal
@@ -163,7 +157,7 @@ package huffman_pkg;
     function void build_phase(uvm_phase phase);
       super.build_phase(phase);
       if(!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
-        `uvm_fatal("NOVIF", "Virtual interface não foi configurada para o monitor")
+        `uvm_error("NOVIF", "Virtual interface não foi configurada para o monitor")
     endfunction
     
     // Tarefa principal
@@ -171,7 +165,7 @@ package huffman_pkg;
       super.run_phase(phase);
       
       forever begin
-        huffman_seq_item item = huffman_seq_item::type_id::create("item");
+        huffman_seq_item item = new("item");
         
         // Esperar por valid_out
         @(posedge vif.clk);
@@ -183,7 +177,7 @@ package huffman_pkg;
           // Enviar item para análise
           item_collected_port.write(item);
           
-          `uvm_info(get_type_name(), $sformatf("Símbolo detectado: %0d", vif.symbol_out), UVM_MEDIUM)
+          `uvm_info("MONITOR", $sformatf("Símbolo detectado: %0d", vif.symbol_out), UVM_MEDIUM)
         end
       end
     endtask
@@ -214,11 +208,11 @@ package huffman_pkg;
       agent_ap = new("agent_ap", this);
       
       // Criar componentes
-      monitor = huffman_monitor::type_id::create("monitor", this);
+      monitor = new("monitor", this);
       
       if(get_is_active() == UVM_ACTIVE) begin
-        driver = huffman_driver::type_id::create("driver", this);
-        sequencer = huffman_sequencer::type_id::create("sequencer", this);
+        driver = new("driver", this);
+        sequencer = new("sequencer", this);
       end
     endfunction
     
@@ -255,21 +249,21 @@ package huffman_pkg;
       // Verificar se o símbolo de saída corresponde ao esperado
       if (item.expected_valid) begin
         if (item.expected_symbol >= 1 && item.expected_symbol <= 18) begin
-          `uvm_info(get_type_name(), $sformatf("PASS: Símbolo válido %0d detectado", item.expected_symbol), UVM_LOW)
+          `uvm_info("SCOREBOARD", $sformatf("PASS: Símbolo válido %0d detectado", item.expected_symbol), UVM_LOW)
           num_passed++;
         end else begin
-          `uvm_error(get_type_name(), $sformatf("FAIL: Símbolo inválido %0d detectado", item.expected_symbol))
+          `uvm_error("SCOREBOARD", $sformatf("FAIL: Símbolo inválido %0d detectado", item.expected_symbol))
           num_failed++;
         end
       end else begin
-        `uvm_info(get_type_name(), "PASS: Nenhum símbolo válido detectado para entrada inválida", UVM_LOW)
+        `uvm_info("SCOREBOARD", "PASS: Nenhum símbolo válido detectado para entrada inválida", UVM_LOW)
         num_passed++;
       end
     endfunction
     
     // Relatório final
     virtual function void report_phase(uvm_phase phase);
-      `uvm_info(get_type_name(), $sformatf("Scoreboard: %0d testes passaram, %0d testes falharam", 
+      `uvm_info("SCOREBOARD", $sformatf("Scoreboard: %0d testes passaram, %0d testes falharam", 
                                          num_passed, num_failed), UVM_LOW)
     endfunction
   endclass
@@ -292,8 +286,8 @@ package huffman_pkg;
       super.build_phase(phase);
       
       // Criar componentes
-      agent = huffman_agent::type_id::create("agent", this);
-      scoreboard = huffman_scoreboard::type_id::create("scoreboard", this);
+      agent = new("agent", this);
+      scoreboard = new("scoreboard", this);
     endfunction
     
     // Fase de conexão
@@ -323,10 +317,10 @@ package huffman_pkg;
       super.build_phase(phase);
       
       // Criar ambiente
-      env = huffman_env::type_id::create("env", this);
+      env = new("env", this);
       
       // Criar sequência
-      seq = huffman_sequence::type_id::create("seq");
+      seq = new("seq");
     endfunction
     
     // Fase de execução
@@ -350,7 +344,7 @@ package huffman_pkg;
       // Obter interface virtual
       virtual huffman_if vif;
       if (!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
-        `uvm_fatal("NOVIF", "Virtual interface não foi configurada para o teste")
+        `uvm_error("NOVIF", "Virtual interface não foi configurada para o teste")
       
       // Aplicar reset
       vif.rst <= 1;

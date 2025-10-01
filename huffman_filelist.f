@@ -4,8 +4,11 @@
 // Opções de compilação
 -timescale 1ns/1ps
 -access +rwc
--uvmhome $UVMHOME
+
+// Opções específicas do UVM para Xcelium
 -uvm
++define+UVM_HDL_MAX_WIDTH=128
++define+UVM_NO_DPI
 
 // Diretórios de inclusão
 -incdir .
