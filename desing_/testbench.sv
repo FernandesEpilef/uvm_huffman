@@ -12,7 +12,7 @@ module tb_huffman_decoder;
         .clk(clk),
         .rst(rst),
         .bit_in(bit_in),
-        .symbol_out(symbol_out),
+        .symbgol_out(symbol_out),
         .valid_out(valid_out)
     );
 

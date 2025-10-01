@@ -14,9 +14,9 @@ class huffman_scoreboard extends uvm_scoreboard;
     item_collected_export = new("item_collected_export", this);
   endfunction
   
-  // Método para escrever transações
+  // Metodo para escrever transações
   virtual function void write(huffman_seq_item item);
-    // Verificar se o símbolo de saída corresponde ao esperado
+    // Verificar se o simbolo de saida corresponde ao esperado
     if (item.expected_valid) begin
       if (item.expected_symbol >= 1 && item.expected_symbol <= 18) begin
         `uvm_info(get_type_name(), $sformatf("PASS: Símbolo válido %0d detectado", item.expected_symbol), UVM_LOW)

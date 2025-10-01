@@ -1,15 +1,3 @@
-// Filelist para compilação do projeto UVM do decodificador Huffman
-// Para uso com Xcelium da Cadence
-
-// Opções de compilação
--timescale 1ns/1ps
--access +rwc
-
-// Opções específicas do UVM para Xcelium
--uvm
-+define+UVM_HDL_MAX_WIDTH=128
-+define+UVM_NO_DPI
-
 // Diretórios de inclusão
 -incdir .
 

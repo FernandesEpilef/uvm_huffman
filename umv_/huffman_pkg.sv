@@ -17,7 +17,6 @@ package huffman_pkg;
     rand int num_bits;
     rand bit [7:0] bit_stream;
     
-    // Restrições
     // Restrição para garantir que num_bits esteja entre 1 e 6, e
     // que expected_symbol esteja entre 1 e 18 (baseado no scoreboard).
     constraint c_num_bits { num_bits inside {1, 2, 3, 4, 5, 6}; }
@@ -31,7 +30,7 @@ package huffman_pkg;
       super.new(name);
     endfunction
     
-    // Método para converter para string
+    // Metodo para converter para string
     virtual function string convert2string();
       return $sformatf("bit_in=%0b, expected_symbol=%0d, expected_valid=%0b, num_bits=%0d, bit_stream=%0b",
                        bit_in, expected_symbol, expected_valid, num_bits, bit_stream);
@@ -67,41 +66,9 @@ package huffman_pkg;
       end
     endtask
     
-    // Método principal da sequência (antigo) - Agora chama a sequência aleatória
+    // Metodo principal da sequência (antigo) - Agora chama a sequência aleatória
     virtual task body();
-      // Sequência Original (Exemplo Estático):
-      /*
-      huffman_seq_item req;
-      
-      // Testar símbolo 1 (código: 0)
-      req = new("req");
-      start_item(req);
-      req.bit_stream = 8'b00000000;
-      req.num_bits = 1;
-      req.expected_symbol = 5'd1;
-      req.expected_valid = 1'b1;
-      finish_item(req);
-      
-      // Testar símbolo 2 (código: 10)
-      req = new("req");
-      start_item(req);
-      req.bit_stream = 8'b00000010;
-      req.num_bits = 2;
-      req.expected_symbol = 5'd2;
-      req.expected_valid = 1'b1;
-      finish_item(req);
-      
-      // Testar símbolo 3 (código: 100)
-      req = new("req");
-      start_item(req);
-      req.bit_stream = 8'b00000100;
-      req.num_bits = 3;
-      req.expected_symbol = 5'd3;
-      req.expected_valid = 1'b1;
-      finish_item(req);
-      */
-      
-      // Chamada da nova sequência aleatória (50 transações)
+
       random_body(50);
       
     endtask
@@ -278,12 +245,10 @@ package huffman_pkg;
       item_collected_export = new("item_collected_export", this);
     endfunction
     
-    // Método para escrever transações
+    // Metodo para escrever transações
     virtual function void write(huffman_seq_item item);
       // Verificar se o símbolo de saída corresponde ao esperado
       if (item.expected_valid) begin
-        // NOTA: Esta lógica deve ser refinada para checar item.expected_symbol
-        // com base no item.bit_stream e na tabela Huffman. 
         if (item.expected_symbol >= 1 && item.expected_symbol <= 18) begin
           `uvm_info("SCOREBOARD", $sformatf("PASS: Valid symbol %0d detected", item.expected_symbol), UVM_LOW)
           num_passed++;
@@ -297,7 +262,7 @@ package huffman_pkg;
       end
     endfunction
     
-    // Relatório final
+    // Relatorio final
     virtual function void report_phase(uvm_phase phase);
       `uvm_info("SCOREBOARD", $sformatf("Scoreboard: %0d testes passaram, %0d testes falharam",
                                        num_passed, num_failed), UVM_LOW)
