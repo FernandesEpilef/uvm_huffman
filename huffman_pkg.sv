@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 package huffman_pkg;
   import uvm_pkg::*;
   `include "uvm_macros.svh"
@@ -16,7 +18,10 @@ package huffman_pkg;
     rand bit [7:0] bit_stream;
     
     // Restrições
+    // Restrição para garantir que num_bits esteja entre 1 e 6, e
+    // que expected_symbol esteja entre 1 e 18 (baseado no scoreboard).
     constraint c_num_bits { num_bits inside {1, 2, 3, 4, 5, 6}; }
+    constraint c_expected_symbol { expected_symbol inside {[1:18]}; }
     
     // Registrar objeto com factory UVM - versão simplificada
     `uvm_object_utils(huffman_seq_item)
@@ -28,7 +33,7 @@ package huffman_pkg;
     
     // Método para converter para string
     virtual function string convert2string();
-      return $sformatf("bit_in=%0b, expected_symbol=%0d, expected_valid=%0b, num_bits=%0d, bit_stream=%0b", 
+      return $sformatf("bit_in=%0b, expected_symbol=%0d, expected_valid=%0b, num_bits=%0d, bit_stream=%0b",
                        bit_in, expected_symbol, expected_valid, num_bits, bit_stream);
     endfunction
   endclass
@@ -42,8 +47,30 @@ package huffman_pkg;
       super.new(name);
     endfunction
     
-    // Método principal da sequência
+    // Tarefa para geração de dados aleatórios
+    virtual task random_body(int num_items = 50);
+      repeat(num_items) begin
+        huffman_seq_item req;
+        
+        req = huffman_seq_item::type_id::create("req");
+        
+        // Randomizar os campos
+        if (!req.randomize()) begin
+          `uvm_fatal("SEQ", "Falha ao randomizar item de sequência.")
+        end
+        
+        `uvm_info("SEQ", $sformatf("Enviando transação aleatória: %s", req.convert2string()), UVM_HIGH)
+
+        // Enviar item ao driver
+        start_item(req);
+        finish_item(req);
+      end
+    endtask
+    
+    // Método principal da sequência (antigo) - Agora chama a sequência aleatória
     virtual task body();
+      // Sequência Original (Exemplo Estático):
+      /*
       huffman_seq_item req;
       
       // Testar símbolo 1 (código: 0)
@@ -72,6 +99,11 @@ package huffman_pkg;
       req.expected_symbol = 5'd3;
       req.expected_valid = 1'b1;
       finish_item(req);
+      */
+      
+      // Chamada da nova sequência aleatória (50 transações)
+      random_body(50);
+      
     endtask
   endclass
 
@@ -89,7 +121,7 @@ package huffman_pkg;
     `uvm_component_utils(huffman_driver)
     
     // Interface virtual
-    virtual huffman_if vif;
+    virtual huffman_if.DRIVER vif; // Usando modport DRIVER
     
     // Construtor
     function new(string name, uvm_component parent);
@@ -99,7 +131,8 @@ package huffman_pkg;
     // Fase de construção
     function void build_phase(uvm_phase phase);
       super.build_phase(phase);
-      if(!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
+      // Buscando a interface com o tipo qualificado por modport
+      if(!uvm_config_db#(virtual huffman_if.DRIVER)::get(this, "", "vif", vif))
         `uvm_error("NOVIF", "Virtual interface not configured for driver")
     endfunction
     
@@ -142,7 +175,7 @@ package huffman_pkg;
     `uvm_component_utils(huffman_monitor)
     
     // Interface virtual
-    virtual huffman_if vif;
+    virtual huffman_if.MONITOR vif; // Usando modport MONITOR
     
     // Análise de porta para enviar transações
     uvm_analysis_port #(huffman_seq_item) item_collected_port;
@@ -156,7 +189,8 @@ package huffman_pkg;
     // Fase de construção
     function void build_phase(uvm_phase phase);
       super.build_phase(phase);
-      if(!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
+      // Buscando a interface com o tipo qualificado por modport
+      if(!uvm_config_db#(virtual huffman_if.MONITOR)::get(this, "", "vif", vif))
         `uvm_error("NOVIF", "Virtual interface not configured for monitor")
     endfunction
     
@@ -248,6 +282,8 @@ package huffman_pkg;
     virtual function void write(huffman_seq_item item);
       // Verificar se o símbolo de saída corresponde ao esperado
       if (item.expected_valid) begin
+        // NOTA: Esta lógica deve ser refinada para checar item.expected_symbol
+        // com base no item.bit_stream e na tabela Huffman. 
         if (item.expected_symbol >= 1 && item.expected_symbol <= 18) begin
           `uvm_info("SCOREBOARD", $sformatf("PASS: Valid symbol %0d detected", item.expected_symbol), UVM_LOW)
           num_passed++;
@@ -263,8 +299,8 @@ package huffman_pkg;
     
     // Relatório final
     virtual function void report_phase(uvm_phase phase);
-      `uvm_info("SCOREBOARD", $sformatf("Scoreboard: %0d testes passaram, %0d testes falharam", 
-                                         num_passed, num_failed), UVM_LOW)
+      `uvm_info("SCOREBOARD", $sformatf("Scoreboard: %0d testes passaram, %0d testes falharam",
+                                       num_passed, num_failed), UVM_LOW)
     endfunction
   endclass
 
@@ -342,8 +378,8 @@ package huffman_pkg;
     // Tarefa para aplicar reset
     virtual task apply_reset();
       // Obter interface virtual
-      virtual huffman_if vif;
-      if(!uvm_config_db#(virtual huffman_if)::get(this, "", "vif", vif))
+      virtual huffman_if.DRIVER vif; // CORREÇÃO APLICADA: Tipo compatível com o set no top-level
+      if(!uvm_config_db#(virtual huffman_if.DRIVER)::get(this, "", "vif", vif))
         `uvm_error("NOVIF", "Virtual interface not configured for test")
       
       // Aplicar reset
@@ -355,3 +391,4 @@ package huffman_pkg;
   endclass
   
 endpackage
+
